@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NovaMint — AI Financial Advisor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #060912;
+  --surface: #0d1220;
+  --surface2: #141b2d;
+  --border: rgba(255,255,255,0.07);
+  --accent: #00e5a0;
+  --accent2: #4f8cff;
+  --warn: #ff6b35;
+  --danger: #ff3b5c;
+  --gold: #ffd166;
+  --text: #e8eaf2;
+  --muted: #6b7399;
+  --card-glow: 0 0 40px rgba(0,229,160,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+h1,h2,h3,h4,.logo{font-family:'Syne',sans-serif;}
+
+/* SCREEN SYSTEM */
+.screen{display:none;min-height:100vh;position:relative;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* NAV BAR */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);background:rgba(6,9,18,0.92);backdrop-filter:blur(16px);position:sticky;top:0;z-index:100;}
+.logo{font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;}
+.logo span{color:var(--accent);}
+.nav-actions{display:flex;gap:10px;align-items:center;}
+
+/* BUTTONS */
+.btn{padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#060912;}
+.btn-primary:hover{background:#00ffb3;transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-warn{background:var(--warn);color:#fff;}
+.btn-lg{padding:14px 32px;font-size:1rem;border-radius:12px;}
+.btn-full{width:100%;}
+
+/* SPLASH */
+#splash{align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,229,160,0.08) 0%, transparent 70%), var(--bg);}
+.splash-inner{text-align:center;max-width:480px;padding:40px 24px;}
+.splash-icon{width:90px;height:90px;background:linear-gradient(135deg,rgba(0,229,160,0.2),rgba(79,140,255,0.2));border-radius:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 28px;font-size:2.5rem;border:1px solid rgba(0,229,160,0.25);animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+.splash-inner h1{font-size:3rem;font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px;}
+.splash-inner h1 .hl{color:var(--accent);}
+.splash-inner p{color:var(--muted);font-size:1.05rem;line-height:1.6;margin-bottom:36px;}
+.splash-actions{display:flex;flex-direction:column;gap:12px;}
+.tagline{font-size:0.78rem;color:var(--muted);margin-top:18px;letter-spacing:1px;text-transform:uppercase;}
+
+/* AUTH */
+#auth{align-items:center;justify-content:center;padding:40px 24px;background:radial-gradient(ellipse 60% 40% at 70% 100%, rgba(79,140,255,0.06) 0%, transparent 70%), var(--bg);}
+.auth-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px;box-shadow:var(--card-glow);}
+.auth-tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:28px;}
+.auth-tab{flex:1;padding:10px;text-align:center;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:500;color:var(--muted);transition:all .2s;font-family:'Syne',sans-serif;}
+.auth-tab.active{background:var(--surface2);color:var(--text);}
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:0.82rem;color:var(--muted);margin-bottom:7px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+.form-group input,select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:0.95rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+.form-group input:focus,select:focus{border-color:var(--accent);}
+.form-group select option{background:var(--surface);}
+.auth-hint{text-align:center;margin-top:20px;font-size:0.85rem;color:var(--muted);}
+
+/* LOADING */
+#loading{align-items:center;justify-content:center;background:var(--bg);}
+.loading-inner{text-align:center;padding:40px;}
+.loader-ring{width:80px;height:80px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:spin 1s linear infinite;margin:0 auto 28px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-steps{margin-top:28px;text-align:left;max-width:280px;}
+.step-item{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:0.9rem;color:var(--muted);transition:color .4s;}
+.step-item.done{color:var(--accent);}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .4s;}
+.step-item.done .step-dot{background:var(--accent);}
+
+/* DASHBOARD */
+#dashboard{background:var(--bg);flex-direction:column;}
+.dash-body{padding:20px 24px;flex:1;}
+.dash-greeting{margin-bottom:20px;}
+.dash-greeting h2{font-size:1.6rem;font-weight:700;letter-spacing:-0.5px;}
+.dash-greeting p{color:var(--muted);font-size:0.9rem;margin-top:4px;}
+.health-score-card{background:linear-gradient(135deg,rgba(0,229,160,0.12),rgba(79,140,255,0.08));border:1px solid rgba(0,229,160,0.2);border-radius:18px;padding:22px;margin-bottom:20px;position:relative;overflow:hidden;}
+.health-score-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(0,229,160,0.15),transparent);border-radius:50%;}
+.score-label{font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px;font-weight:600;}
+.score-value{font-size:3rem;font-weight:800;font-family:'Syne',sans-serif;line-height:1;}
+.score-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:3px;margin-top:12px;overflow:hidden;}
+.score-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1s ease;}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.metric-label{font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.metric-value{font-size:1.4rem;font-weight:700;font-family:'Syne',sans-serif;}
+.metric-sub{font-size:0.78rem;margin-top:4px;}
+.metric-up{color:var(--accent);}
+.metric-down{color:var(--danger);}
+.alerts-section{margin-bottom:20px;}
+.section-title{font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;font-weight:600;}
+.alert-item{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border-radius:12px;padding:14px;margin-bottom:8px;border-left:3px solid transparent;}
+.alert-item.warn{border-color:var(--warn);}
+.alert-item.danger{border-color:var(--danger);}
+.alert-item.success{border-color:var(--accent);}
+.alert-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+.alert-text p{font-size:0.85rem;font-weight:500;}
+.alert-text span{font-size:0.78rem;color:var(--muted);}
+.ai-reco-teaser{background:linear-gradient(135deg,rgba(79,140,255,0.12),rgba(0,229,160,0.06));border:1px solid rgba(79,140,255,0.2);border-radius:16px;padding:20px;cursor:pointer;transition:all .2s;}
+.ai-reco-teaser:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(79,140,255,0.15);}
+.ai-reco-teaser .tag{display:inline-block;background:rgba(79,140,255,0.2);color:var(--accent2);font-size:0.72rem;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;font-weight:600;}
+.ai-reco-teaser h3{font-size:1rem;font-weight:700;margin-bottom:6px;}
+.ai-reco-teaser p{font-size:0.85rem;color:var(--muted);}
+.reco-arrow{float:right;color:var(--accent2);font-size:1.2rem;}
+
+/* BOTTOM NAV */
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:10px 0 6px;position:sticky;bottom:0;}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0;border-radius:10px;transition:all .2s;}
+.bnav-item .icon{font-size:1.3rem;}
+.bnav-item .label{font-size:0.65rem;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;}
+.bnav-item.active .label{color:var(--accent);}
+
+/* RECOMMENDATION */
+#recommendation{flex-direction:column;background:var(--bg);}
+.reco-body{padding:24px;flex:1;}
+.reco-hero{background:linear-gradient(135deg,var(--surface),rgba(79,140,255,0.08));border:1px solid var(--border);border-radius:20px;padding:26px;margin-bottom:20px;}
+.reco-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.25);color:var(--accent);font-size:0.78rem;padding:5px 14px;border-radius:20px;margin-bottom:16px;font-weight:600;}
+.reco-badge::before{content:'●';animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.reco-hero h2{font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:10px;}
+.reco-hero .subtitle{color:var(--muted);font-size:0.9rem;line-height:1.5;}
+.score-pills{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.pill{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:0.8rem;}
+.pill b{color:var(--accent);}
+.pill.risk{color:var(--gold);}
+.pill.risk b{color:var(--gold);}
+.why-btn{width:100%;background:transparent;border:1px solid var(--accent2);color:var(--accent2);border-radius:12px;padding:14px;font-size:0.9rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;}
+.why-btn:hover{background:rgba(79,140,255,0.08);}
+.signals-section{margin-top:20px;}
+.signal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.signal-row:last-child{border:none;}
+.signal-name{font-size:0.85rem;color:var(--muted);}
+.signal-val{font-size:0.85rem;font-weight:600;}
+.signal-bar{width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px;}
+.signal-fill{height:100%;border-radius:2px;background:var(--accent);}
+
+/* XAI WHY */
+#why{flex-direction:column;background:var(--bg);}
+.why-body{padding:24px;flex:1;}
+.xai-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px;}
+.xai-card h4{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:10px;}
+.reason-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.reason-item:last-child{border:none;}
+.reason-icon{font-size:1rem;width:28px;text-align:center;flex-shrink:0;}
+.reason-text p{font-size:0.88rem;font-weight:500;}
+.reason-text span{font-size:0.78rem;color:var(--muted);}
+.weight-badge{margin-left:auto;font-size:0.75rem;background:rgba(0,229,160,0.12);color:var(--accent);padding:2px 8px;border-radius:8px;flex-shrink:0;align-self:flex-start;margin-top:2px;}
+.json-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'Courier New',monospace;font-size:0.75rem;color:#7dd3fc;line-height:1.6;overflow-x:auto;}
+
+/* GROWTH */
+#growth{flex-direction:column;background:var(--bg);}
+.growth-body{padding:24px;flex:1;}
+.growth-inputs{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;}
+.input-row{display:flex;gap:12px;margin-bottom:16px;}
+.input-row .form-group{flex:1;margin:0;}
+.projection-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;}
+.proj-card .period{font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.proj-card .amount{font-size:1.5rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);}
+.proj-card .invested{font-size:0.78rem;color:var(--muted);margin-top:4px;}
+.chart-area{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;}
+.chart-title{font-size:0.85rem;font-weight:600;margin-bottom:14px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--accent),rgba(0,229,160,0.3));min-height:4px;transition:height 1s ease;}
+.bar-label{font-size:0.65rem;color:var(--muted);}
+
+/* BLOCKED */
+#blocked{flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;background:var(--bg);}
+.blocked-card{max-width:420px;width:100%;text-align:center;}
+.blocked-icon{width:80px;height:80px;background:rgba(255,59,92,0.1);border:1px solid rgba(255,59,92,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 24px;}
+.blocked-card h2{font-size:1.5rem;font-weight:800;margin-bottom:10px;}
+.blocked-card p{color:var(--muted);font-size:0.9rem;line-height:1.6;margin-bottom:24px;}
+.rules-list{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:24px;text-align:left;}
+.rule-item{display:flex;gap:10px;padding:8px 0;font-size:0.85rem;border-bottom:1px solid var(--border);}
+.rule-item:last-child{border:none;}
+.rule-item .ri{color:var(--danger);}
+.alt-reco{background:linear-gradient(135deg,rgba(0,229,160,0.06),rgba(79,140,255,0.06));border:1px solid rgba(0,229,160,0.15);border-radius:14px;padding:18px;margin-bottom:20px;text-align:left;}
+.alt-reco .alt-tag{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:8px;font-weight:600;}
+.alt-reco h4{font-size:1rem;font-weight:700;margin-bottom:6px;}
+.alt-reco p{font-size:0.85rem;color:var(--muted);}
+
+/* DEMO CONTROLS */
+.demo-panel{background:rgba(255,209,102,0.05);border:1px solid rgba(255,209,102,0.2);border-radius:14px;padding:16px;margin:16px 24px;}
+.demo-panel p{font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:10px;font-weight:700;}
+.demo-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.demo-btn{background:rgba(255,209,102,0.1);border:1px solid rgba(255,209,102,0.25);color:var(--gold);padding:6px 14px;border-radius:8px;font-size:0.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.demo-btn:hover{background:rgba(255,209,102,0.2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:0.85rem;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:rgba(0,229,160,0.4);color:var(--accent);}
+.toast.warn{border-color:rgba(255,107,53,0.4);color:var(--warn);}
+
+/* BACK BTN */
+.back-btn{background:transparent;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px;transition:color .2s;}
+.back-btn:hover{color:var(--text);}
+
+/* UTIL */
+.txt-accent{color:var(--accent);}
+.txt-warn{color:var(--warn);}
+.txt-danger{color:var(--danger);}
+.txt-gold{color:var(--gold);}
+.mb-8{margin-bottom:8px;}
+.mb-16{margin-bottom:16px;}
+.mt-8{margin-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1: SPLASH
+═══════════════════════════════════════════ -->
+<div class="screen active" id="splash">
+  <div class="splash-inner">
+    <div class="splash-icon">💡</div>
+    <h1>Your <span class="hl">Smartest</span> Financial Advisor</h1>
+    <p>AI-powered insights, real-time event detection, and ethical guardrails — all in your pocket.</p>
+    <div class="splash-actions">
+      <button class="btn btn-primary btn-lg btn-full" onclick="go('auth')">Get Started</button>
+      <button class="btn btn-ghost btn-lg btn-full" onclick="go('auth')">Sign In</button>
+    </div>
+    <p class="tagline">NovaMint · Powered by AI · Secured by Ethics</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2: AUTH
+═══════════════════════════════════════════ -->
+<div class="screen" id="auth">
+  <div class="nav">
+    <button class="back-btn" onclick="go('splash')">←</button>
+    <div class="logo">Nova<span>Mint</span></div>
+    <div style="width:40px"></div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</div>
+        <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="login-form">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" placeholder="you@example.com" id="login-email"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" placeholder="••••••••" id="login-pass"/>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doLogin()">Sign In</button>
+        <p class="auth-hint">Demo: any email + password works</p>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div id="signup-form" style="display:none;">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" placeholder="Alex Kumar" id="su-name"/>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" placeholder="you@example.com" id="su-email"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" placeholder="Min 8 characters" id="su-pass"/>
+        </div>
+        <div class="form-group">
+          <label>Risk Profile</label>
+          <select id="su-risk">
+            <option value="conservative">Conservative — Play it safe</option>
+            <option value="moderate" selected>Moderate — Balanced approach</option>
+            <option value="aggressive">Aggressive — High growth</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="doSignup()">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3: LOADING / ANALYZING
+═══════════════════════════════════════════ -->
+<div class="screen" id="loading">
+  <div class="loading-inner" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div class="loader-ring"></div>
+    <h3 style="font-size:1.2rem;margin-bottom:6px;">Analyzing your finances…</h3>
+    <p style="color:var(--muted);font-size:0.88rem;">Our AI is processing your data</p>
+    <div class="loading-steps" id="load-steps">
+      <div class="step-item" id="st1"><div class="step-dot"></div> Authenticating securely</div>
+      <div class="step-item" id="st2"><div class="step-dot"></div> Fetching transaction history</div>
+      <div class="step-item" id="st3"><div class="step-dot"></div> Detecting financial events</div>
+      <div class="step-item" id="st4"><div class="step-dot"></div> Scoring suitability</div>
+      <div class="step-item" id="st5"><div class="step-dot"></div> Running ethical guardrails</div>
+      <div class="step-item" id="st6"><div class="step-dot"></div> Building recommendations</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 4: DASHBOARD
+═══════════════════════════════════════════ -->
+<div class="screen" id="dashboard">
+  <div class="nav">
+    <div class="logo">Nova<span>Mint</span></div>
+    <div class="nav-actions">
+      <span style="font-size:1.2rem;cursor:pointer;">🔔</span>
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;cursor:pointer;">A</div>
+    </div>
+  </div>
+
+  <!-- DEMO CONTROLS -->
+  <div class="demo-panel">
+    <p>🎭 Demo Mode — Simulate Events</p>
+    <div class="demo-btns">
+      <button class="demo-btn" onclick="simulateSalary()">💰 Salary Credit</button>
+      <button class="demo-btn" onclick="simulateHighExpense()">🛍 High Expense</button>
+      <button class="demo-btn" onclick="simulateLowBalance()">⚠️ Low Balance</button>
+      <button class="demo-btn" onclick="simulateSurplus()">📈 Surplus</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="dash-greeting">
+      <h2>Good morning, Alex 👋</h2>
+      <p id="dash-date">Loading date…</p>
+    </div>
+
+    <!-- HEALTH SCORE -->
+    <div class="health-score-card">
+      <div class="score-label">Financial Health Score</div>
+      <div class="score-value txt-accent" id="health-val">72</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-top:4px;" id="health-label">Good — You're on track</div>
+      <div class="score-bar"><div class="score-fill" id="health-bar" style="width:72%"></div></div>
+    </div>
+
+    <!-- METRIC CARDS -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Monthly Income</div>
+        <div class="metric-value" id="m-income">₹85,000</div>
+        <div class="metric-sub metric-up" id="m-income-sub">↑ Salary credited</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Current Balance</div>
+        <div class="metric-value" id="m-balance">₹42,300</div>
+        <div class="metric-sub txt-accent" id="m-bal-sub">↑ +12% vs last month</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Savings Ratio</div>
+        <div class="metric-value" id="m-savings">31%</div>
+        <div class="metric-sub metric-up">✓ Healthy (>20%)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Monthly Spend</div>
+        <div class="metric-value" id="m-spend">₹58,700</div>
+        <div class="metric-sub" id="m-spend-sub" style="color:var(--muted);">69% of income</div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="alerts-section">
+      <div class="section-title">Active Alerts</div>
+      <div id="alerts-container">
+        <div class="alert-item success">
+          <div class="alert-icon">✅</div>
+          <div class="alert-text"><p>Salary credited — ₹85,000</p><span>Event detected today · Auto-analysis triggered</span></div>
+        </div>
+        <div class="alert-item warn">
+          <div class="alert-icon">⚡</div>
+          <div class="alert-text"><p>Dining expenses up 40% this month</p><span>₹12,400 spent on food · Consider reviewing</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI TEASER -->
+    <div class="ai-reco-teaser" onclick="go('recommendation')">
+      <span class="reco-arrow">→</span>
+      <div class="tag">🤖 AI Recommendation Ready</div>
+      <h3>Index Fund SIP — High Match</h3>
+      <p>Based on your 31% savings ratio and moderate risk profile, we found a 87% suitable product for you.</p>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="bnav-item active" onclick="go('dashboard')"><div class="icon">🏠</div><div class="label">Home</div></div>
+    <div class="bnav-item" onclick="go('recommendation')"><div class="icon">💡</div><div class="label">Advice</div></div>
+    <div class="bnav-item" onclick="go('growth')"><div class="icon">📈</div><div class="label">Grow</div></div>
+    <div class="bnav-item" onclick="showToast('Settings coming soon','warn')"><div class="icon">⚙️</div><div class="label">Settings</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 5: RECOMMENDATION
+═══════════════════════════════════════════ -->
+<div class="screen" id="recommendation">
+  <div class="nav">
+    <button class="back-btn" onclick="go('dashboard')">←</button>
+    <div class="logo">Nova<span>Mint</span></div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="reco-body">
+    <div class="reco-hero">
+      <div class="reco-badge">AI Matched</div>
+      <h2>Nifty 50 Index Fund SIP</h2>
+      <p class="subtitle">A low-cost, diversified equity fund tracking India's top 50 companies — ideal for your moderate risk profile and consistent savings pattern.</p>
+      <div class="score-pills">
+        <div class="pill">Suitability <b>87%</b></div>
+        <div class="pill risk">Risk <b>Moderate</b></div>
+        <div class="pill">Confidence <b>91%</b></div>
+        <div class="pill">CAGR Est. <b>12–14%</b></div>
+      </div>
+    </div>
+
+    <button class="why-btn" onclick="go('why')">🔍 Why am I seeing this recommendation?</button>
+    <button class="btn btn-primary btn-full" style="margin-bottom:12px;" onclick="go('growth')">📈 See Growth Projection</button>
+    <button class="btn btn-ghost btn-full" onclick="go('blocked')">🚫 View a Blocked Recommendation</button>
+
+    <div class="signals-section">
+      <div class="section-title">Signals Used by AI</div>
+      <div class="signal-row">
+        <div><div class="signal-name">Savings Ratio</div><div class="signal-bar"><div class="signal-fill" style="width:78%;background:var(--accent)"></div></div></div>
+        <div class="signal-val txt-accent">31% ✓</div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-name">Risk Profile</div><div class="signal-bar"><div class="signal-fill" style="width:60%;background:var(--gold)"></div></div></div>
+        <div class="signal-val txt-gold">Moderate</div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-name">Debt Status</div><div class="signal-bar"><div class="signal-fill" style="width:20%;background:var(--accent)"></div></div></div>
+        <div class="signal-val txt-accent">Low ✓</div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-name">Emergency Fund</div><div class="signal-bar"><div class="signal-fill" style="width:85%;background:var(--accent)"></div></div></div>
+        <div class="signal-val txt-accent">4.2 months ✓</div>
+      </div>
+      <div class="signal-row">
+        <div><div class="signal-name">Income Stability</div><div class="signal-bar"><div class="signal-fill" style="width:90%;background:var(--accent)"></div></div></div>
+        <div class="signal-val txt-accent">Salaried ✓</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 6: EXPLAINABLE AI — WHY?
+═══════════════════════════════════════════ -->
+<div class="screen" id="why">
+  <div class="nav">
+    <button class="back-btn" onclick="go('recommendation')">←</button>
+    <div class="logo">Nova<span>Mint</span></div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="why-body">
+    <h2 style="font-size:1.4rem;margin-bottom:6px;">Why This Recommendation?</h2>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:20px;">Our AI uses transparent, rule-based scoring. Here's exactly what drove this decision:</p>
+
+    <div class="xai-card">
+      <h4>🧠 Reason Codes & Weights</h4>
+      <div class="reason-item">
+        <div class="reason-icon">💰</div>
+        <div class="reason-text">
+          <p>Healthy Savings Ratio (31%)</p>
+          <span>Savings above 20% = surplus available for investment</span>
+        </div>
+        <div class="weight-badge">+30pts</div>
+      </div>
+      <div class="reason-item">
+        <div class="reason-icon">🛡️</div>
+        <div class="reason-text">
+          <p>Adequate Emergency Fund (4.2 months)</p>
+          <span>3+ months of expenses covered → equity investment unlocked</span>
+        </div>
+        <div class="weight-badge">+25pts</div>
+      </div>
+      <div class="reason-item">
+        <div class="reason-icon">📊</div>
+        <div class="reason-text">
+          <p>Moderate Risk Profile Match</p>
+          <span>Index fund risk level aligns with user-declared risk appetite</span>
+        </div>
+        <div class="weight-badge">+20pts</div>
+      </div>
+      <div class="reason-item">
+        <div class="reason-icon">✅</div>
+        <div class="reason-text">
+          <p>Low Debt-to-Income Ratio</p>
+          <span>Debt below 30% of income → investment is safe to proceed</span>
+        </div>
+        <div class="weight-badge">+12pts</div>
+      </div>
+    </div>
+
+    <div class="xai-card">
+      <h4>📋 Scoring Formula</h4>
+      <div class="json-block">suitability_score = (
+  savings_score × 0.30   → 30 pts
+  emergency_score × 0.25 → 25 pts
+  risk_match × 0.20      → 20 pts
+  income_score × 0.15    → 15 pts
+  debt_score × 0.10      → 10 pts
+)
+
+Total: 87 / 100
+Threshold: > 60 → Recommend ✓
+Guardrails: PASS ✓
+Final Confidence: 91%</div>
+    </div>
+
+    <div class="xai-card">
+      <h4>📦 API JSON Response</h4>
+      <div class="json-block">{
+  "product": "Nifty 50 Index Fund SIP",
+  "suitability_pct": 87,
+  "risk_level": "moderate",
+  "confidence_score": 91,
+  "guardrail_pass": true,
+  "reason_codes": [
+    {
+      "code": "HIGH_SAVINGS",
+      "label": "Savings ratio 31%",
+      "weight": 0.30,
+      "score": 30,
+      "signal": "savings_ratio &gt; 20%"
+    },
+    {
+      "code": "EMERGENCY_FUND_OK",
+      "label": "4.2 months covered",
+      "weight": 0.25,
+      "score": 25,
+      "signal": "emergency_months &gt;= 3"
+    }
+  ],
+  "explanation": "You save 31% of income, have
+    4.2 months emergency fund, and moderate
+    risk appetite — ideal for index SIP."
+}</div>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="go('recommendation')">← Back to Recommendation</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 7: GROWTH PROJECTION
+═══════════════════════════════════════════ -->
+<div class="screen" id="growth">
+  <div class="nav">
+    <button class="back-btn" onclick="go('recommendation')">←</button>
+    <div class="logo">Nova<span>Mint</span></div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="growth-body">
+    <h2 style="font-size:1.4rem;margin-bottom:6px;">Investment Growth Projection</h2>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:20px;">CAGR-based SIP calculator — no ML, pure math.</p>
+
+    <div class="growth-inputs">
+      <div class="input-row">
+        <div class="form-group">
+          <label>Monthly SIP (₹)</label>
+          <input type="number" id="sip-amount" value="10000" oninput="calcProjection()"/>
+        </div>
+        <div class="form-group">
+          <label>Expected CAGR (%)</label>
+          <input type="number" id="cagr" value="12" oninput="calcProjection()"/>
+        </div>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted);">Formula: FV = P × [((1+r)^n - 1) / r] × (1+r) &nbsp;|&nbsp; r = monthly rate = CAGR/12/100</p>
+    </div>
+
+    <div class="projection-cards">
+      <div class="proj-card">
+        <div class="period">5 Years</div>
+        <div class="amount" id="proj-5y">₹8.2L</div>
+        <div class="invested" id="invest-5y">Invested: ₹6.0L</div>
+        <div style="font-size:0.75rem;color:var(--accent);margin-top:4px;" id="gain-5y">Gain: +₹2.2L</div>
+      </div>
+      <div class="proj-card">
+        <div class="period">10 Years</div>
+        <div class="amount" id="proj-10y">₹23.2L</div>
+        <div class="invested" id="invest-10y">Invested: ₹12.0L</div>
+        <div style="font-size:0.75rem;color:var(--accent);margin-top:4px;" id="gain-10y">Gain: +₹11.2L</div>
+      </div>
+    </div>
+
+    <div class="chart-area">
+      <div class="chart-title">📊 Year-by-Year Growth</div>
+      <div class="bar-chart" id="bar-chart"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;" id="bar-labels"></div>
+    </div>
+
+    <div class="xai-card" style="margin-top:16px;">
+      <h4>📐 Calculation Logic</h4>
+      <div class="json-block">r = CAGR / 12 / 100        # monthly rate
+n = years × 12              # total months
+FV = P × [((1+r)^n - 1)/r] × (1+r)
+
+Example (₹10,000 SIP, 12% CAGR):
+  r = 0.12/12 = 0.01
+  5yr: FV = 10000 × [((1.01)^60-1)/0.01] × 1.01
+       FV ≈ ₹8,16,697
+  10yr: FV ≈ ₹23,23,391</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 8: BLOCKED RECOMMENDATION
+═══════════════════════════════════════════ -->
+<div class="screen" id="blocked">
+  <div class="nav">
+    <button class="back-btn" onclick="go('recommendation')">←</button>
+    <div class="logo">Nova<span>Mint</span></div>
+    <div style="width:40px"></div>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <div class="blocked-card">
+      <div class="blocked-icon">🚫</div>
+      <h2>Recommendation Blocked</h2>
+      <p>Our ethical guardrails have flagged this recommendation as unsafe for your current financial profile.</p>
+
+      <div class="rules-list">
+        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--danger);margin-bottom:8px;font-weight:700;">Guardrails Triggered</div>
+        <div class="rule-item">
+          <div class="ri">✗</div>
+          <div>Emergency fund below 3 months (1.2 months) — equity investments blocked</div>
+        </div>
+        <div class="rule-item">
+          <div class="ri">✗</div>
+          <div>High debt-to-income ratio (48%) — investment risk too high</div>
+        </div>
+        <div class="rule-item">
+          <div class="ri">✗</div>
+          <div>Product risk (Aggressive) exceeds user profile (Conservative)</div>
+        </div>
+      </div>
+
+      <div class="json-block" style="margin-bottom:16px;text-align:left;"><!-- Blocked API Response -->
+{
+  "blocked": true,
+  "product_requested": "Small Cap Fund",
+  "block_reasons": [
+    "INSUFFICIENT_EMERGENCY_FUND",
+    "HIGH_DEBT_RATIO",
+    "RISK_MISMATCH"
+  ],
+  "guardrail_score": 23,
+  "threshold": 60,
+  "alternative": "Liquid Fund or RD"
+}</div>
+
+      <div class="alt-reco">
+        <div class="alt-tag">✅ Safe Alternative Suggested</div>
+        <h4>Liquid Fund / Fixed Deposit</h4>
+        <p>Build your emergency fund to 3 months first. Reduce debt to under 30%. Then revisit equity products.</p>
+      </div>
+
+      <button class="btn btn-ghost btn-full" onclick="go('recommendation')">← Back to Recommendations</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const state = {
+  income: 85000,
+  balance: 42300,
+  spend: 58700,
+  savings_ratio: 31,
+  health_score: 72,
+  emergency_months: 4.2,
+  debt_ratio: 18,
+  risk_profile: 'moderate'
+};
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function go(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
+  document.getElementById('signup-form').style.display = tab==='signup'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-pass').value;
+  if(!email||!pass){showToast('Please fill all fields','warn');return;}
+  startLoading();
+}
+
+function doSignup() {
+  const name = document.getElementById('su-name').value;
+  const email = document.getElementById('su-email').value;
+  const pass = document.getElementById('su-pass').value;
+  if(!name||!email||!pass){showToast('Please fill all fields','warn');return;}
+  state.risk_profile = document.getElementById('su-risk').value;
+  startLoading();
+}
+
+// ═══════════════════════════════════════════
+// LOADING SEQUENCE
+// ═══════════════════════════════════════════
+function startLoading() {
+  go('loading');
+  const steps = ['st1','st2','st3','st4','st5','st6'];
+  steps.forEach(id => document.getElementById(id).classList.remove('done'));
+  let i = 0;
+  const interval = setInterval(() => {
+    if(i < steps.length) {
+      document.getElementById(steps[i]).classList.add('done');
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => { go('dashboard'); setupDashboard(); }, 400);
+    }
+  }, 500);
+}
+
+// ═══════════════════════════════════════════
+// DASHBOARD SETUP
+// ═══════════════════════════════════════════
+function setupDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  updateDashboard();
+}
+
+function updateDashboard() {
+  const {income, balance, spend, savings_ratio, health_score} = state;
+  document.getElementById('m-income').textContent = '₹'+income.toLocaleString('en-IN');
+  document.getElementById('m-balance').textContent = '₹'+balance.toLocaleString('en-IN');
+  document.getElementById('m-savings').textContent = savings_ratio+'%';
+  document.getElementById('m-spend').textContent = '₹'+spend.toLocaleString('en-IN');
+  document.getElementById('m-spend-sub').textContent = Math.round((spend/income)*100)+'% of income';
+  document.getElementById('health-val').textContent = health_score;
+  document.getElementById('health-bar').style.width = health_score+'%';
+
+  // Health label
+  let label = health_score >= 80 ? 'Excellent 🚀' : health_score >= 60 ? 'Good — You\'re on track ✓' : health_score >= 40 ? 'Fair — Needs attention ⚠️' : 'Critical — Action needed 🔴';
+  document.getElementById('health-label').textContent = label;
+}
+
+// ═══════════════════════════════════════════
+// DEMO SIMULATION
+// ═══════════════════════════════════════════
+function simulateSalary() {
+  state.income = 95000;
+  state.balance = state.balance + 95000;
+  state.savings_ratio = 35;
+  state.health_score = 80;
+  updateDashboard();
+  
+  const container = document.getElementById('alerts-container');
+  const alert = document.createElement('div');
+  alert.className = 'alert-item success';
+  alert.innerHTML = `<div class="alert-icon">💰</div><div class="alert-text"><p>EVENT: Salary Credited — ₹95,000</p><span>AI triggered → Re-analyzing suitability scores now</span></div>`;
+  container.prepend(alert);
+  showToast('Salary event detected! AI re-running…','');
+}
+
+function simulateHighExpense() {
+  state.spend = Math.min(state.income * 0.90, state.spend + 25000);
+  state.savings_ratio = Math.max(5, Math.round((1 - state.spend/state.income)*100));
+  state.health_score = Math.max(30, state.health_score - 20);
+  state.balance = Math.max(5000, state.balance - 25000);
+  updateDashboard();
+  
+  const container = document.getElementById('alerts-container');
+  const alert = document.createElement('div');
+  alert.className = 'alert-item danger';
+  alert.innerHTML = `<div class="alert-icon">🔴</div><div class="alert-text"><p>HIGH EXPENSE DETECTED — Spending spike +40%</p><span>AI flagging: investments paused pending review</span></div>`;
+  container.prepend(alert);
+  showToast('High expense event! Score dropped.','warn');
+}
+
+function simulateLowBalance() {
+  state.balance = 3200;
+  state.health_score = Math.max(20, state.health_score - 25);
+  state.emergency_months = 0.8;
+  updateDashboard();
+  
+  const container = document.getElementById('alerts-container');
+  const alert = document.createElement('div');
+  alert.className = 'alert-item danger';
+  alert.innerHTML = `<div class="alert-icon">⚠️</div><div class="alert-text"><p>LOW BALANCE ALERT — ₹3,200 remaining</p><span>Guardrail: All equity recommendations BLOCKED</span></div>`;
+  container.prepend(alert);
+  showToast('Low balance! Guardrails activated.','warn');
+}
+
+function simulateSurplus() {
+  state.balance = 95000;
+  state.savings_ratio = 42;
+  state.health_score = 88;
+  state.emergency_months = 6.5;
+  updateDashboard();
+
+  const container = document.getElementById('alerts-container');
+  const alert = document.createElement('div');
+  alert.className = 'alert-item success';
+  alert.innerHTML = `<div class="alert-icon">📈</div><div class="alert-text"><p>SURPLUS DETECTED — ₹95,000 investable</p><span>AI upgraded recommendation to higher growth products</span></div>`;
+  container.prepend(alert);
+  showToast('Surplus detected! New recommendations ready.','');
+}
+
+// ═══════════════════════════════════════════
+// GROWTH PROJECTION (SIP FORMULA)
+// ═══════════════════════════════════════════
+function calcProjection() {
+  const P = parseFloat(document.getElementById('sip-amount').value) || 10000;
+  const cagr = parseFloat(document.getElementById('cagr').value) || 12;
+  const r = cagr / 12 / 100;
+
+  function fv(months) {
+    return P * (Math.pow(1+r, months)-1) / r * (1+r);
+  }
+
+  const fv5 = fv(60);
+  const fv10 = fv(120);
+  const inv5 = P * 60;
+  const inv10 = P * 120;
+
+  document.getElementById('proj-5y').textContent = '₹'+formatL(fv5);
+  document.getElementById('proj-10y').textContent = '₹'+formatL(fv10);
+  document.getElementById('invest-5y').textContent = 'Invested: ₹'+formatL(inv5);
+  document.getElementById('invest-10y').textContent = 'Invested: ₹'+formatL(inv10);
+  document.getElementById('gain-5y').textContent = 'Gain: +₹'+formatL(fv5-inv5);
+  document.getElementById('gain-10y').textContent = 'Gain: +₹'+formatL(fv10-inv10);
+
+  // Build bar chart (years 1–10)
+  const years = Array.from({length:10},(_,i)=>i+1);
+  const vals = years.map(y => fv(y*12));
+  const maxV = Math.max(...vals);
+  const chart = document.getElementById('bar-chart');
+  const labels = document.getElementById('bar-labels');
+  chart.innerHTML=''; labels.innerHTML='';
+  years.forEach((y,i)=>{
+    const h = Math.round((vals[i]/maxV)*100);
+    chart.innerHTML += `<div class="bar-wrap"><div class="bar" style="height:${h}%"></div></div>`;
+    labels.innerHTML += `<div style="flex:1;text-align:center;font-size:0.65rem;color:var(--muted);">Yr${y}</div>`;
+  });
+}
+
+function formatL(n) {
+  if(n >= 10000000) return (n/10000000).toFixed(1)+'Cr';
+  if(n >= 100000) return (n/100000).toFixed(1)+'L';
+  return Math.round(n).toLocaleString('en-IN');
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type||'success');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+window.addEventListener('load', () => {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  calcProjection();
+});
+</script>
+</body>
+</html>
